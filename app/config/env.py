@@ -1,0 +1,20 @@
+from pydantic import BaseSettings
+
+
+class Settings(BaseSettings):
+    cluster_user_password: str
+    cluster_user_name: str
+    cluster_name: str
+    database_name: str
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
+    password_token_expire_minutes: int
+
+    class Config:
+        env_file = ".env"
+
+
+settings = Settings()
+
+
