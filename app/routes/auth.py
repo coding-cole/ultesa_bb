@@ -4,7 +4,7 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from app.config.database import users
 from app.models.auth import Token
 from app.oauth import create_access_token
-from app.utils import verify
+from app.utils import verify, serialise_dict
 
 auth_router = APIRouter(
     tags=['Authentication']
@@ -15,7 +15,7 @@ auth_router = APIRouter(
 async def login(
         user_credentials: OAuth2PasswordRequestForm = Depends()
 ):
-    user = users.find_one({"username": user_credentials.username})
+    user = serialise_dict(users.find_one({"username": user_credentials.username}))
 
     if not user:
         raise HTTPException(
@@ -23,7 +23,7 @@ async def login(
             detail=f"User does not exist"
         )
 
-    if not verify(user_credentials.password, user.password):
+    if not verify(user_credentials.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Incorrect username or password"
@@ -31,7 +31,7 @@ async def login(
 
     access_token = create_access_token(
         data={
-            "user_id": user.id
+            "user_id": user["_id"]
         }
     )
     # return token

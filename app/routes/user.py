@@ -1,12 +1,13 @@
 from typing import List, Optional
-
+import re
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.models.user import CreateUserBody, UpdateUserBody
 from app.config.database import users
 from app.oauth import get_current_user
-from app.utils import serialise_dict, serialise_list, check_user, hash_p, check_id, check_and_return_user
+from app.utils import serialise_dict, serialise_list, check_user, hash_p, validate_id, check_and_return_user, \
+    validate_phone_number, validate_username, validate_password, validate_gender
 
 user_router = APIRouter(
     prefix="/users",
@@ -37,6 +38,11 @@ async def get_one_user(id):
     '/',
 )
 async def create_user(user_body: CreateUserBody):
+    validate_password(user_body.password)
+    validate_phone_number(user_body.phone_number)
+    validate_username(user_body.username)
+    validate_gender(user_body.gender)
+
     existing_user_with_username = users.find_one({"username": user_body.username})
     if existing_user_with_username is not None:
         raise HTTPException(
@@ -70,24 +76,30 @@ async def create_user(user_body: CreateUserBody):
         "posts": []
     }
     users.insert_one(new_user)
-    return serialise_list(users.find())
+    return "User created"
 
 
 @user_router.put(
-    '/{id}',
+    '/',
 )
-async def update_user(id, user_body: UpdateUserBody):
-    user = check_and_return_user(id)
-    users.update_one({"_id": ObjectId(id)}, {
+async def update_user(
+        user_body: UpdateUserBody,
+        current_user: dict = Depends(get_current_user),
+):
+    validate_phone_number(user_body.phone_number)
+    validate_username(user_body.username)
+
+    users.update_one({"_id": ObjectId(current_user["id"])}, {
         "$set": dict(user_body)
     })
-    return user
+    return users.find_one({"_id": ObjectId(current_user["id"])})
 
 
-@user_router.delete('/{id}')
+@user_router.delete('/')
 async def delete_user(
-        id,
+        current_user: dict = Depends(get_current_user),
 ):
+    id = current_user["_id"]
     username = check_and_return_user(id)["username"]
     users.delete_one({"_id": ObjectId(id)})
-    return f"User '{username}' was deleted successfully"
+    return f"Your account: '{username}' was deleted successfully"
