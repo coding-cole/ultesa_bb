@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 
-from bson import ObjectId
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
-from app.config.database import users
 from app.config.env import settings
 from app.models.auth import PasswordTokenData, TokenData
-from app.utils import serialise_dict, check_and_return_user
+from app.utils import check_and_return_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 # SECRET_KEY

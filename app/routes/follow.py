@@ -19,6 +19,13 @@ async def follow(
         current_user: dict = Depends(get_current_user)
 ):
     followed_user = check_and_return_user(followed_id)
+    current_user_id = current_user["_id"]
+
+    if followed_id == current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid user id"
+        )
 
     if followed_id in current_user["following"]:
         raise HTTPException(
@@ -51,6 +58,13 @@ async def unfollow(
         current_user: dict = Depends(get_current_user)
 ):
     unfollowed_user = check_and_return_user(unfollowed_id)
+    current_user_id = current_user["_id"]
+
+    if unfollowed_id == current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid user id"
+        )
 
     if unfollowed_id not in current_user["following"]:
         raise HTTPException(
@@ -59,7 +73,7 @@ async def unfollow(
         )
 
     users.update_one(
-        {"_id": ObjectId(current_user["_id"])}, {
+        {"_id": ObjectId(current_user_id)}, {
             "$pull": {
                 "following": unfollowed_id
             }
@@ -68,7 +82,7 @@ async def unfollow(
     users.update_one(
         {"_id": ObjectId(unfollowed_id)}, {
             "$pull": {
-                "followers": current_user["_id"]
+                "followers": current_user_id
             }
         }
     )

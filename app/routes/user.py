@@ -1,12 +1,10 @@
-from typing import List, Optional
-import re
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.models.user import CreateUserBody, UpdateUserBody
 from app.config.database import users
+from app.models.user import CreateUserBody, UpdateUserBody
 from app.oauth import get_current_user
-from app.utils import serialise_dict, serialise_list, check_user, hash_p, validate_id, check_and_return_user, \
+from app.utils import serialise_list, hash_p, check_and_return_user, \
     validate_phone_number, validate_username, validate_password, validate_gender
 
 user_router = APIRouter(
@@ -86,13 +84,16 @@ async def update_user(
         user_body: UpdateUserBody,
         current_user: dict = Depends(get_current_user),
 ):
+    id = current_user["_id"]
     validate_phone_number(user_body.phone_number)
     validate_username(user_body.username)
+    check_and_return_user(id)
 
-    users.update_one({"_id": ObjectId(current_user["id"])}, {
-        "$set": dict(user_body)
-    })
-    return users.find_one({"_id": ObjectId(current_user["id"])})
+    users.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": dict(user_body)}
+    )
+    return check_and_return_user(id)
 
 
 @user_router.delete('/')
