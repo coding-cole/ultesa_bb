@@ -1,11 +1,15 @@
-from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
 
-from app.config.database import users
-from app.models.user import CreateUserBody, UpdateUserBody
+from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
+
+from app.config.database import db
+from app.models.user import CreateUserBody, UpdateUserBody, UserResponse
 from app.oauth import get_current_user
-from app.utils import serialise_list, hash_p, check_and_return_user, \
-    validate_phone_number, validate_username, validate_password, validate_gender
+from app.utils import validate_phone_number, validate_username, validate_password, \
+    validate_gender, hash_p
+from constants import USERS
 
 user_router = APIRouter(
     prefix="/users",
@@ -15,92 +19,101 @@ user_router = APIRouter(
 
 @user_router.get(
     '/',
-    # response_model=List[UserResponse]
+    response_description="List all users",
+    response_model=List[UserResponse]
 )
 async def get_all_users(
         limit: int = 20,
         skip: int = 0,
 ):
-    return serialise_list(users.find().limit(limit).skip(skip))
+    users = await db[USERS].find(limit=limit, skip=skip).to_list(None)
+    return users
 
 
 @user_router.get(
     '/{id}',
+    response_description="Get a single student",
+    response_model=UserResponse
 )
-async def get_one_user(id):
-    user = check_and_return_user(id)
-    return user
+async def get_one_user(id: str):
+    if (user := await db[USERS].find_one({"_id": id})) is not None:
+        return user
+    raise HTTPException(status_code=404, detail=f"User: {id} not found")
 
 
 @user_router.post(
     '/',
+    response_description="Add new user",
+    response_model=UserResponse
 )
-async def create_user(user_body: CreateUserBody):
+async def create_user(user_body: CreateUserBody = Body(...)):
     validate_password(user_body.password)
     validate_phone_number(user_body.phone_number)
     validate_username(user_body.username)
     validate_gender(user_body.gender)
 
-    existing_user_with_username = users.find_one({"username": user_body.username})
-    if existing_user_with_username is not None:
+    if (existing_user := await db[USERS].find_one({"username": user_body.username})) is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Account with username: '{user_body.username}' already exists "
+            detail=f"User '{existing_user['username']}' already exists"
         )
-
-    existing_user_with_email = users.find_one({"email": user_body.email})
-    if existing_user_with_email is not None:
+    if (existing_user := await db[USERS].find_one({"email": user_body.email})) is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Account with email: '{user_body.email}' already exists "
+            detail=f"User with email: '{existing_user['email']}' already exists"
         )
 
-    new_user = {
-        "email": user_body.email,
-        "first_name": user_body.first_name.lower(),
-        "middle_name": user_body.middle_name.lower(),
-        "last_name": user_body.last_name.lower(),
-        "school": user_body.school.lower(),
-        "department": user_body.department.lower(),
-        "gender": user_body.gender.lower(),
-        "phone_number": user_body.phone_number,
-        "username": user_body.username,
-        "password": hash_p(user_body.password),
-        # insert by default
-        "profile_img": "blablablas",
-        "verified": False,
-        "following": [],
-        "followers": [],
-        "posts": []
-    }
-    users.insert_one(new_user)
-    return "User created"
+    user_body.password = hash_p(user_body.password)
+    user_body.following = []
+    user_body.followers = []
+    user_body.posts = []
+    user = jsonable_encoder(user_body)
+    new_user = await db[USERS].insert_one(user)
+    created_user = await db[USERS].find_one({"_id": new_user.inserted_id})
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content=created_user
+    )
 
 
 @user_router.put(
     '/',
+    response_description="Update a user",
+    response_model=UserResponse
 )
 async def update_user(
-        user_body: UpdateUserBody,
+        user_body: UpdateUserBody = Body(...),
         current_user: dict = Depends(get_current_user),
 ):
     id = current_user["_id"]
     validate_phone_number(user_body.phone_number)
     validate_username(user_body.username)
-    check_and_return_user(id)
 
-    users.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": dict(user_body)}
-    )
-    return check_and_return_user(id)
+    user = {k: v for k, v in user_body.dict().items() if v is not None}
+
+    if len(user) >= 1:
+        update_result = await db[USERS].update_one({"_id": id}, {"$set": user})
+        if update_result.modified_count == 1:
+            if (
+                    updated_user := await db[USERS].find_one({"_id": id})
+            ) is not None:
+                return updated_user
+    if (existing_user := await db[USERS].find_one({"_id": id})) is not None:
+        return existing_user
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {id} not found")
 
 
-@user_router.delete('/')
+@user_router.delete(
+    '/',
+    response_description="Delete a student"
+)
 async def delete_user(
         current_user: dict = Depends(get_current_user),
 ):
-    id = current_user["_id"]
-    username = check_and_return_user(id)["username"]
-    users.delete_one({"_id": ObjectId(id)})
-    return f"Your account: '{username}' was deleted successfully"
+    if current_user is not None:
+        delete_result = await db[USERS].delete_one({"_id": current_user["_id"]})
+
+        if delete_result.deleted_count == 1:
+            return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User '{current_user['username']}' not found")

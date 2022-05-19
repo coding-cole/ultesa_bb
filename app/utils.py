@@ -1,11 +1,11 @@
 import re
-
 import bson
 from bson import ObjectId
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
-
-from app.config.database import users
+from bottle import response
+from app.config.database import db, fs
+from constants import USERS
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -32,33 +32,6 @@ def check_user(current_user, id):
         )
 
 
-def serialise_dict(a) -> dict:
-    return {**{i: str(a[i]) for i in a if i == '_id'}, **{i: a[i] for i in a if i != '_id'}}
-
-
-def serialise_list(entity) -> list:
-    return [serialise_dict(a) for a in entity]
-
-
-def validate_id(id):
-    if not bson.objectid.ObjectId.is_valid(id):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid id"
-        )
-
-
-def check_and_return_user(id):
-    validate_id(id)
-    existing_user_with_id = users.find_one({"_id": ObjectId(id)})
-    if not existing_user_with_id:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"User does not exist or invalid token"
-        )
-    return serialise_dict(existing_user_with_id)
-
-
 def validate_password(password):
     if not re.fullmatch(r'[A-Za-z0-9@#$%^&+=]{8,}', password):
         raise HTTPException(
@@ -68,7 +41,7 @@ def validate_password(password):
 
 
 def validate_phone_number(number):
-    if not re.fullmatch(r'[0-9+]{11,14}', number):
+    if not re.fullmatch(r'[0-9+]{11,14}', str(number)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid phone number"
@@ -89,3 +62,17 @@ def validate_gender(gender):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid gender"
         )
+
+
+def upload_file(file_name):
+    with open(file_name, 'rb') as f:
+        contents = f.read()
+
+    print(file_name)
+    fs.put(contents, filename=file_name)
+
+
+def retrieve_file(file_name):
+    grid_out = fs.get_last_version(filename=file_name)
+    response.content_type = 'image/jpeg'
+    return grid_out

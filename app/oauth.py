@@ -4,9 +4,10 @@ from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
+from app.config.database import db
 from app.config.env import settings
 from app.models.auth import PasswordTokenData, TokenData
-from app.utils import check_and_return_user
+from constants import USERS
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 # SECRET_KEY
@@ -38,7 +39,6 @@ def create_reset_password_token(data: dict):
 
 
 def verify_access_token(user_token: str, credentials_exception):
-    global token_data
     try:
         payload = jwt.decode(user_token, SECRETE_KEY, algorithms=[ALGORITHM])
         id: str = payload.get("user_id")
@@ -46,12 +46,6 @@ def verify_access_token(user_token: str, credentials_exception):
             raise credentials_exception
 
         token_data = TokenData(id=id)
-    except jwt.ExpiredSignatureError:
-        HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token expired",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
     except JWTError:
         raise credentials_exception
 
@@ -72,7 +66,7 @@ def verify_password_token(password_token: str, credentials_exception):
     return token_data
 
 
-def get_current_user(
+async def get_current_user(
     user_token: str = Depends(oauth2_scheme),
 ):
     credentials_exception = HTTPException(
@@ -81,6 +75,6 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"}
     )
     token = verify_access_token(user_token, credentials_exception)
-    user = check_and_return_user(token.id)
+    user = await db[USERS].find_one({"_id": token.id})
 
     return user

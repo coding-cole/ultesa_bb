@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
-from app.config.database import users
+from app.config.database import db
 from app.models.auth import Token
 from app.oauth import create_access_token
-from app.utils import verify, serialise_dict
+from app.utils import verify
+from constants import USERS
 
 auth_router = APIRouter(
     tags=['Authentication']
@@ -15,7 +16,7 @@ auth_router = APIRouter(
 async def login(
         user_credentials: OAuth2PasswordRequestForm = Depends()
 ):
-    user = serialise_dict(users.find_one({"username": user_credentials.username}))
+    user = await db[USERS].find_one({"username": user_credentials.username})
 
     if not user:
         raise HTTPException(

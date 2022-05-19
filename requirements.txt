@@ -53,3 +53,6 @@ uvicorn==0.17.6
 watchgod==0.8.2
 websockets==10.3
 wrapt==1.14.1
+
+bottle~=0.12.19
+motor~=3.0.0
