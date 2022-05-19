@@ -1,6 +1,9 @@
+import asyncio
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config.database import init_db
 from app.routes.auth import auth_router
 from app.routes.follow import follow_router
 from app.routes.user import user_router
@@ -16,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+asyncio.create_task(init_db())
 
 
 @app.get(
