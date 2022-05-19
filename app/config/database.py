@@ -23,14 +23,12 @@ async def init_db():
     if constants.USERS not in collections_in_dp:
         users = await db.create_collection(
             name=constants.USERS,
-            # validator=constants.USERS_VALIDATOR
         )
         print(users)
 
     if constants.POSTS not in collections_in_dp:
         posts = await db.create_collection(
             name=constants.POSTS,
-            # validator=constants.POSTS_VALIDATOR
         )
         print(posts)
 
