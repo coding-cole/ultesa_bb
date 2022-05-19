@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status, Body
@@ -26,7 +27,7 @@ async def get_all_users(
         limit: int = 20,
         skip: int = 0,
 ):
-    users = await db[USERS].find(limit=limit, skip=skip).to_list(None)
+    users = db[USERS].find(limit=limit, skip=skip).to_list(None)
     return users
 
 
@@ -64,9 +65,6 @@ async def create_user(user_body: CreateUserBody = Body(...)):
         )
 
     user_body.password = hash_p(user_body.password)
-    user_body.following = []
-    user_body.followers = []
-    user_body.posts = []
     user = jsonable_encoder(user_body)
     new_user = await db[USERS].insert_one(user)
     created_user = await db[USERS].find_one({"_id": new_user.inserted_id})

@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from bson import ObjectId
@@ -93,21 +94,3 @@ class UserResponse(BaseModel):
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
-        schema_extra = {
-            "example": {
-                "email": "jdoe@example.com",
-                "first_name": "Jane",
-                "middle_name": "Doe",
-                "last_name": "Cole",
-                "school": "UNILAG",
-                "department": "Maths",
-                "gender": "m",
-                "phone_number": "08187706081",
-                "username": "john_doe",
-                "profile_img": "blablablas",
-                "verified": False,
-                "following": [],
-                "followers": [],
-                "posts": []
-            }
-        }

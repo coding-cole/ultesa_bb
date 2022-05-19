@@ -33,14 +33,14 @@ async def follow(
             detail=f"Already following"
         )
 
-    db[USERS].update_one(
+    await db[USERS].update_one(
         {"_id": current_user["_id"]}, {
             "$push": {
                 "following": followed_id
             }
         }
     )
-    db[USERS].update_one(
+    await db[USERS].update_one(
         {"_id": followed_id}, {
             "$push": {
                 "followers": current_user["_id"]
@@ -72,14 +72,14 @@ async def unfollow(
             detail=f"Already unfollowed"
         )
 
-    db[USERS].update_one(
+    await db[USERS].update_one(
         {"_id": current_user_id}, {
             "$pull": {
                 "following": unfollowed_id
             }
         }
     )
-    db[USERS].update_one(
+    await db[USERS].update_one(
         {"_id": unfollowed_id}, {
             "$pull": {
                 "followers": current_user_id

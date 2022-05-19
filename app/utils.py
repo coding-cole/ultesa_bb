@@ -1,11 +1,10 @@
 import re
-import bson
-from bson import ObjectId
+
+from bottle import response
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
-from bottle import response
-from app.config.database import db, fs
-from constants import USERS
+
+from app.config.database import bucket
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -69,10 +68,10 @@ def upload_file(file_name):
         contents = f.read()
 
     print(file_name)
-    fs.put(contents, filename=file_name)
+    bucket.put(contents, filename=file_name)
 
 
 def retrieve_file(file_name):
-    grid_out = fs.get_last_version(filename=file_name)
+    grid_out = bucket.get_last_version(filename=file_name)
     response.content_type = 'image/jpeg'
     return grid_out
