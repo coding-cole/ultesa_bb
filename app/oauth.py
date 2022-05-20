@@ -10,9 +10,6 @@ from app.models.auth import PasswordTokenData, TokenData
 from constants import USERS
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
-# SECRET_KEY
-# Algorithm
-# expiration_time
 
 SECRETE_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
