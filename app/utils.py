@@ -1,10 +1,8 @@
 import re
 
 from bottle import response
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from passlib.context import CryptContext
-
-from app.config.database import bucket
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -61,17 +59,3 @@ def validate_gender(gender):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid gender"
         )
-
-
-def upload_file(file_name):
-    with open(file_name, 'rb') as f:
-        contents = f.read()
-
-    print(file_name)
-    bucket.put(contents, filename=file_name)
-
-
-def retrieve_file(file_name):
-    grid_out = bucket.get_last_version(filename=file_name)
-    response.content_type = 'image/jpeg'
-    return grid_out

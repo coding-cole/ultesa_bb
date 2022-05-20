@@ -31,7 +31,3 @@ async def init_db():
             name=constants.POSTS,
         )
         print(posts)
-
-
-# Create an object of GridFs for the above database.
-bucket = motor.AsyncIOMotorGridFSBucket(db)

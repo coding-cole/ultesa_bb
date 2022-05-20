@@ -56,3 +56,4 @@ wrapt==1.14.1
 
 bottle~=0.12.19
 motor~=3.0.0
+Pyrebase~=3.0.27

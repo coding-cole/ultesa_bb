@@ -18,7 +18,6 @@ async def follow(
         current_user: dict = Depends(get_current_user)
 ):
     followed_user = await db[USERS].find_one({"_id": followed_id})
-    print()
     current_user_id = current_user["_id"]
 
     if followed_id == current_user_id:

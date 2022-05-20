@@ -75,6 +75,8 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"}
     )
     token = verify_access_token(user_token, credentials_exception)
-    user = await db[USERS].find_one({"_id": token.id})
 
-    return user
+    # Check if user with id still Exists and return
+    if (user := await db[USERS].find_one({"_id": token.id})) is not None:
+        return user
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User: '{id}' deleted")
