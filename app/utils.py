@@ -1,7 +1,6 @@
 import re
 
-from bottle import response
-from fastapi import HTTPException, status, UploadFile
+from fastapi import HTTPException, status
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

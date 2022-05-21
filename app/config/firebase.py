@@ -19,6 +19,6 @@ firebase_storage = firebase.storage()
 
 auth = firebase.auth()
 user = auth.sign_in_with_email_and_password(settings.firebase_email, settings.firebase_password)
-# before the 1 hour expiry:
+# before the 1-hour expiry:
 user = auth.refresh(user['refreshToken'])
 firebase_token = user['idToken']

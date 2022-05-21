@@ -6,8 +6,8 @@ from jose import JWTError, jwt
 
 from app.config.database import db
 from app.config.env import settings
+from app.constants import USERS
 from app.models.auth import PasswordTokenData, TokenData
-from constants import USERS
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 

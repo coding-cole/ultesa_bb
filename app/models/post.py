@@ -1,9 +1,7 @@
 from typing import List
 
 from bson import ObjectId
-from pydantic import BaseModel, Field
-
-from app.models.object_id import PyObjectId
+from pydantic import BaseModel
 
 
 class PostResponse(BaseModel):
