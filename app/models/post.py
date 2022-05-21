@@ -7,7 +7,7 @@ from app.models.object_id import PyObjectId
 
 
 class PostResponse(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: str
     owner_id: str
     title: str
     content: str
@@ -42,3 +42,19 @@ class PostResponse(BaseModel):
                 ]
             }
         }
+
+
+def post_entity(item) -> dict:
+    return {
+        "id": str(item["_id"]),
+        "owner_id": item["owner_id"],
+        "title": item["title"],
+        "content": item["content"],
+        "image_name": item["image_name"],
+        "comments": item["comments"],
+        "likes": item["likes"]
+    }
+
+
+def posts_entity(entity) -> list:
+    return [post_entity(item) for item in entity]

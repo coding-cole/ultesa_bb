@@ -92,6 +92,8 @@ async def update_user(
         if update_result.modified_count == 1:
             updated_user = await db[USERS].find_one({"_id": id})
             return updated_user
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Unable to make changes")
+
     return current_user
 
 
@@ -106,18 +108,9 @@ async def update_profile_image(
     id = current_user["_id"]
     current_user_profile_image_name = current_user["profile_img_name"]
 
-    # If the current user profile image name is not the same as the default image name OR the new image/file name
     if current_user_profile_image_name is not file.filename:
         # TODO: Find a way to delete the existing image before uploading a new one
-        # # Delete the file
-        # print(firebase_token)
-        # try:
-        #     firebase_storage.delete(name=current_user_profile_image_name)
-        # except Exception as e:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_409_CONFLICT,
-        #         detail=f"Unable to delete image: {current_user_profile_image_name} from storage. Error: {e}"
-        #     )
+
         # Upload the new image/file
         try:
             # Upload the new image/file
@@ -133,6 +126,7 @@ async def update_profile_image(
         if update_result.modified_count == 1:
             updated_user = await db[USERS].find_one({"_id": id})
             return updated_user
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Unable to upload image")
     return current_user
 
 
@@ -142,17 +136,9 @@ async def update_profile_image(
 async def delete_user(
         current_user: dict = Depends(get_current_user),
 ):
-    # current_user_profile_image_name = current_user["profile_img_name"]
     # TODO: Find a way to delete the existing image before uploading a new one
-    # if current_user_profile_image_name is not DEFAULT_PROFILE_IMAGE_NAME:
-    #     try:
-    #         firebase_storage.delete(name=current_user_profile_image_name, token=firebase_token)
-    #     except Exception as e:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_409_CONFLICT,
-    #             detail=f"Unable to delete image: {current_user_profile_image_name} from storage. Error: {e}"
-    #         )
     delete_result = await db[USERS].delete_one({"_id": current_user["_id"]})
 
     if delete_result.deleted_count == 1:
         return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Unable to delete user")
