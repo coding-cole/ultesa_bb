@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from app.config.database import db
 from app.oauth import get_current_user
-from constants import USERS
+from app.constants import USERS
 
 follow_router = APIRouter(
     prefix="/follow",

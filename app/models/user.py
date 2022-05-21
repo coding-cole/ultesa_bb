@@ -4,7 +4,7 @@ from bson import ObjectId
 from pydantic import BaseModel, EmailStr, Field
 
 from app.models.object_id import PyObjectId
-from constants import DEFAULT_PROFILE_IMAGE_NAME
+from app.constants import DEFAULT_PROFILE_IMAGE_NAME
 
 
 class CreateUserBody(BaseModel):

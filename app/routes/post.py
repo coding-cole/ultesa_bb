@@ -8,7 +8,7 @@ from app.config.database import db
 from app.config.firebase import firebase_storage
 from app.models.post import post_entity, posts_entity, PostResponse
 from app.oauth import get_current_user
-from constants import POSTS, USERS
+from app.constants import POSTS, USERS
 
 post_router = APIRouter(
     prefix="/post",

@@ -5,12 +5,12 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
 from app.config.database import db
-from app.config.firebase import firebase_storage, firebase_token
+from app.config.firebase import firebase_storage
 from app.models.user import CreateUserBody, UpdateUserBody, UserResponse
 from app.oauth import get_current_user
 from app.utils import validate_phone_number, validate_username, validate_password, \
     validate_gender, hash_p
-from constants import USERS, DEFAULT_PROFILE_IMAGE_NAME
+from app.constants import USERS
 
 user_router = APIRouter(
     prefix="/user",

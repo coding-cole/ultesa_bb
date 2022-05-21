@@ -30,7 +30,7 @@ asyncio.create_task(init_db())
     tags=["Welcome"]
 )
 def welcome():
-    return {"message": "Welcome to Ultesa Blockbuster API!!!"}
+    return {"message": "Welcome to ULTESA Blockbuster API!!!"}
 
 
 app.include_router(auth_router)

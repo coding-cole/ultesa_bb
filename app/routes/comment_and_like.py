@@ -3,7 +3,7 @@ from fastapi import APIRouter, Form, Depends, HTTPException, status
 
 from app.config.database import db
 from app.oauth import get_current_user
-from constants import POSTS
+from app.constants import POSTS
 
 comment_and_like_router = APIRouter(
     tags=['Comment and Like posts']

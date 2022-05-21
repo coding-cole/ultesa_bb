@@ -5,7 +5,7 @@ from app.config.database import db
 from app.models.auth import Token
 from app.oauth import create_access_token
 from app.utils import verify
-from constants import USERS
+from app.constants import USERS
 
 auth_router = APIRouter(
     tags=['Authentication']
