@@ -13,8 +13,8 @@ from app.utils import validate_phone_number, validate_username, validate_passwor
 from constants import USERS, DEFAULT_PROFILE_IMAGE_NAME
 
 user_router = APIRouter(
-    prefix="/users",
-    tags=['Users']
+    prefix="/user",
+    tags=['User']
 )
 
 
@@ -33,7 +33,7 @@ async def get_all_users(
 
 @user_router.get(
     '/{id}',
-    response_description="Get a single student",
+    response_description="Get a single user",
     response_model=UserResponse
 )
 async def get_one_user(id: str):
