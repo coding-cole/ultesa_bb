@@ -23,7 +23,7 @@ class CreateUserBody(BaseModel):
     verified: bool = False
     following: List[str]
     followers: List[str]
-    posts: List[str]
+    posts: List[ObjectId]
 
     class Config:
         allow_population_by_field_name = True
@@ -86,7 +86,7 @@ class UserResponse(BaseModel):
     verified: bool
     following: List[str]
     followers: List[str]
-    posts: List[str]
+    posts: List[ObjectId]
 
     class Config:
         allow_population_by_field_name = True
